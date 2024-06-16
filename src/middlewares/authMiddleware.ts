@@ -1,12 +1,15 @@
 import { Request, Response, NextFunction } from "express";
+import dotenv from 'dotenv'; 
+
+dotenv.config()
+
 /**
- * i implemented faux token as measure to enable authentcation to be carried on with
- * provided a token is provided in the request headers.
+ * i implemented faux token as measure to enable authentcation to be carried on without the necessary standings of a jwt token
  */
 
 
 // Faux token for authentication
-const FAUX_TOKEN = "your-faux-token";
+const FAUX_TOKEN = process.env.FAUX_TOKEN;
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers["authorization"];

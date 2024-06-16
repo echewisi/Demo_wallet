@@ -1,13 +1,15 @@
 import type { Knex } from "knex";
+import dotenv from 'dotenv'; 
+
+dotenv.config()
 
 const config: { [key: string]: Knex.Config } = {
   development: {
-    client: "mysql2",
+    client: process.env.DB_CLIENT,
     connection: {
-      host: "127.0.0.1",
-      user: "root",
-    //   password: "your-password",
-      database: "demo_wallet_db"
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER ,
+      database: process.env.DB_NAME 
     },
     migrations: {
       directory: './migrations'
