@@ -14,7 +14,7 @@ interface User {
 /**
  * 
  * this file exists as a support service for the user service
- * when expanded upon 
+ * when expanded upon
  */
 
 const getUserById = async (id: string): Promise<User | undefined> => {
