@@ -7,11 +7,17 @@ import { v4 as uuidv4 } from "uuid";
 
 const db = knex(config.development);
 
+/**
+ * 
+ * @param user: this stands as the present user entity engaging in action with the application. in this instance, a user is being created.
+ * @returns: the created user is being returned if successful or the process is errored due to other failed conditions, including but not limited
+ * to being present in adjutor's karma database. 
+ */
 export const createUserService = async (user: User) => {
   // Check if user is in blacklist
   const response = await axios.get(`https://adjutor.lendsqr.com/v2/verification/karma/${user.email}`);
   if (response.data.data.karma_identity) {
-    throw new Error("User is in the blacklist.");
+    throw new Error("User is in the blacklist. Cannot be onboarded!");
   }
 
   // Hash the password before storing it
@@ -27,20 +33,3 @@ export const createUserService = async (user: User) => {
   return newUser;
 };
 
-export const loginService = async (email: string, password: string) => {
-  const user = await getUserByEmail(email);
-
-  if (!user) {
-    throw new Error("Invalid email or password.");
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    throw new Error("Invalid email or password.");
-  }
-
-  // Return user data without password
-  const { password: _, ...userWithoutPassword } = user;
-  return userWithoutPassword;
-};
