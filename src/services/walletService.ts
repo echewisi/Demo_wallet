@@ -10,7 +10,6 @@ import {
   createTransaction,
 } from "../models/walletModel";
 import { getUserById } from "../models/userModel";
-import { Error } from "mongoose";
 
 const db = knex(config.development);
 
