@@ -51,7 +51,7 @@ Before you begin, ensure you have the following installed on your system:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/echewisi/demo_wallet
+git clone https://github.com/echewisi/Demo_wallet
 ```
 ```bash 
 cd demo_wallet
@@ -73,6 +73,7 @@ cd demo_wallet
 ### DATABASE SETUP
 
 1. create the database
+   (if you choose local setup)
    ```CREATE DATABASE demo_wallet_db;```
 
 2. run database migrations
