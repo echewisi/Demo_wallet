@@ -11,19 +11,25 @@ dotenv.config({path: './.env'})
 
 // Faux token for authentication
 const FAUX_TOKEN = process.env.FAUX_TOKEN;
+const NODE_ENV = process.env.NODE_ENV;
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers["authorization"];
+  if (NODE_ENV === 'development') {
+    // Skip token check in development for easier testing
+    next();
+  } else {
+    const token = req.headers["authorization"];
 
-  if (!token) {
-    return res.status(401).json({ message: "No token provided" });
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    if (token !== `Bearer ${FAUX_TOKEN}`) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    next();
   }
-
-  if (token !== `Bearer ${FAUX_TOKEN}`) {
-    return res.status(401).json({ message: "Invalid token" });
-  }
-
-  next();
 };
 
 export default authMiddleware;
