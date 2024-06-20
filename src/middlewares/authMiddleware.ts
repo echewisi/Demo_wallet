@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import dotenv from 'dotenv'; 
 
-dotenv.config()
+dotenv.config({path: './.env'})
 
 /**
- * i implemented faux token as measure to enable authentcation to be carried on without the necessary standings of a jwt token
+ * i implemented faux token as measure to enable authentcation to be carried on without the necessary standings of a jwt token,
+ * cookie, or other 
  */
 
 
