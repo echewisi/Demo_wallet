@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const db = knex(config.development);
+const db = knex(config.production);
 
 /**
  *
@@ -25,42 +25,41 @@ export const createUserService = async (user: User) => {
     }
 
     // Check if user is in blacklist
-    // console.log("Preparing to check if user is in blacklist");
-    // const apiUrl = await axios.get(
-    //   `https://adjutor.lendsqr.com/v2/verification/karma/${user.email}`,
-    //   {
-    //     headers: {
-    //       "Authorization": `Bearer ${process.env.ADJUTOR_SECRET_KEY}`,
-    //     },
-    //   }
-    // );
+    console.log("Preparing to check if user is in blacklist");
+    const apiUrl = await axios.get(
+      `https://adjutor.lendsqr.com/v2/verification/karma/${user.email}`,
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.ADJUTOR_SECRET_KEY}`,
+        },
+      }
+    );
 
-    // console.log("Making request to Adjutor API");
-    // console.log("URL:", apiUrl);
-    // console.log("Headers:", apiUrl.headers);
+    console.log("Making request to Adjutor API");
+    console.log("URL:", apiUrl);
+    console.log("Headers:", apiUrl.headers);
 
-    // console.log("Blacklist check response:", apiUrl.data);
-    // if (apiUrl.data.data.karma_identity) {
-    //   throw new Error("User is in the blacklist. Cannot be onboarded!");
-    // }
+    console.log("Blacklist check response:", apiUrl.data);
+    if (apiUrl.data.data.karma_identity) {
+      throw new Error("User is in the blacklist. Cannot be onboarded!");
+    }
 
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
-    // Assign a new UUID to the user
   // Assign a new UUID to the user
   user.id = uuidv4();
-
-  // Create the user in the database
-  const newUser = await createUser({ ...user, password: hashedPassword });
 
   // Create a wallet for the new user
   const walletId = uuidv4();
   await db("wallets").insert({
     wallet_id: walletId,
-    user_id: newUser.id,
+    user_id: user.id,
     balance: 0.0,
   });
+
+  // Create the user in the database
+  const newUser = await createUser({ ...user, password: hashedPassword });
 
   // Update user with wallet_id
   await db("users").where({ id: newUser.id }).update({ wallet_id: walletId });

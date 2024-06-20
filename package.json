@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "npm run build && node dist/app.js"
+    "start": "npm run build && node dist/app.js",
+    "migrate:latest:dev": "NODE_ENV=development npx knex migrate:latest --knexfile src/knexfile.ts",
+    "migrate:latest:prod": "NODE_ENV=production npx knex migrate:latest --knexfile src/knexfile.ts"
   },
   "keywords": [],
   "author": "",

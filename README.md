@@ -6,6 +6,7 @@ Demo Wallet is a Node.js application that provides a wallet management system. I
 
 - [Demo Wallet](#demo-wallet)
   - [Table of Contents](#table-of-contents)
+  - [Project overview on Notion](#project-overview-on-notion)
   - [Features](#features)
   - [ERD DIAGRAM](#erd-diagram)
   - [Setup Instructions](#setup-instructions)
@@ -20,6 +21,11 @@ Demo Wallet is a Node.js application that provides a wallet management system. I
     - [Contributing](#contributing)
     - [License](#license)
     - [Explanation](#explanation)
+
+
+## Project overview on Notion
+you can find the project overview on notion:
+```https://www.notion.so/DEMO-WALLET-OVERVIEW-63a7af23be604086babab90762ee3aee?pvs=4```
 
 ## Features
 

@@ -11,7 +11,10 @@ import {
 } from "../models/walletModel";
 import { getUserById } from "../models/userModel";
 
-const db = knex(config.development);
+
+const db = knex(config.production);
+
+
 
 /**
  *
