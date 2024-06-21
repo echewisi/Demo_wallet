@@ -34,6 +34,8 @@ export const createUserService = async (user: User) => {
         },
       }
     );
+    //please note that after consistent tries with the api that it only seems to read one kind of identity, and
+    //that identity stands as the identity provided in the documentation. every ohter means of identity: email, phone, and such does not work
 
     console.log("Making request to Adjutor API");
     console.log("URL:", apiUrl);

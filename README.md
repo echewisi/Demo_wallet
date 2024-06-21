@@ -6,6 +6,7 @@ Demo Wallet is a Node.js application that provides a wallet management system. I
 
 - [Demo Wallet](#demo-wallet)
   - [Table of Contents](#table-of-contents)
+  - [IMPORTANT NOTICE!!](#important-notice)
   - [Project overview on Notion](#project-overview-on-notion)
   - [Features](#features)
   - [ERD DIAGRAM](#erd-diagram)
@@ -22,6 +23,9 @@ Demo Wallet is a Node.js application that provides a wallet management system. I
     - [License](#license)
     - [Explanation](#explanation)
 
+
+## IMPORTANT NOTICE!!
+aside from the minor tweaks coming from the lendsqr adjudtor  karma api(the field for `identity` doesent seem to read the any identity provided. except for the very one depicted in the documentation), the api does the other functionalities right.
 
 ## Project overview on Notion
 you can find the project overview on notion:
