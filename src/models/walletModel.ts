@@ -2,7 +2,7 @@ import knex from "knex";
 import config from "../knexfile";
 import { v4 as uuidv4 } from "uuid";
 
-const db = knex(config.development);
+const db = knex(config);
 
 interface Wallet {
   id: string;
