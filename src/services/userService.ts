@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const db = knex(config);
+const db = knex(config.production);
 
 /**
  *
