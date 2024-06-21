@@ -5,10 +5,11 @@ import config from "../knexfile";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
+import { error } from "console";
 
 dotenv.config();
 
-const db = knex(config.production);
+const db = knex(config.development);
 
 /**
  *
@@ -26,25 +27,35 @@ export const createUserService = async (user: User) => {
 
     // Check if user is in blacklist
     console.log("Preparing to check if user is in blacklist");
-    const apiUrl = await axios.get(
-      `https://adjutor.lendsqr.com/v2/verification/karma/${user.email}`,
-      {
-        headers: {
-          "Authorization": `Bearer ${process.env.ADJUTOR_SECRET_KEY}`,
-        },
+    try{
+      const apiUrl = await axios.get(
+        `https://adjutor.lendsqr.com/v2/verification/karma/${user.email}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${process.env.ADJUTOR_SECRET_KEY}`,
+          },
+        }
+      );
+      //please note that after consistent tries with the api that it only seems to read one kind of identity, and
+      //that identity stands as the identity provided in the documentation. every ohter means of identity: email, phone, and such does not work
+  
+      console.log("Making request to Adjutor API");
+      console.log("URL:", apiUrl);
+      console.log("Headers:", apiUrl.headers);
+  
+      console.log("Blacklist check response:", apiUrl.data);
+      if (apiUrl.data.data.karma_identity) {
+        throw new Error("User is in the blacklist. Cannot be onboarded!");
       }
-    );
-    //please note that after consistent tries with the api that it only seems to read one kind of identity, and
-    //that identity stands as the identity provided in the documentation. every ohter means of identity: email, phone, and such does not work
-
-    console.log("Making request to Adjutor API");
-    console.log("URL:", apiUrl);
-    console.log("Headers:", apiUrl.headers);
-
-    console.log("Blacklist check response:", apiUrl.data);
-    if (apiUrl.data.data.karma_identity) {
-      throw new Error("User is in the blacklist. Cannot be onboarded!");
+    } catch(axiosError: any){
+      if(axiosError.response && axiosError.response.status === 404){
+        console.warn("Adjutor API returned 404. Skipping blacklist check.")
+      } else{
+        throw axiosError;
+      }
     }
+
+
 
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(user.password, 10);

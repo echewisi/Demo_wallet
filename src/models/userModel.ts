@@ -1,7 +1,7 @@
 import knex from "knex";
 import config from "../knexfile";
 
-const db = knex(config.production);
+const db = knex(config.development);
 
 interface User {
   id?: string;

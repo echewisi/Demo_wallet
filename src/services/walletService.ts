@@ -12,7 +12,7 @@ import {
 import { getUserById } from "../models/userModel";
 
 
-const db = knex(config.production);
+const db = knex(config.development);
 
 
 
