@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import knex from 'knex';
 import config from '../../../knexfile';
 
-const db = knex(config.production);
+const db = knex(config.development);
 
 jest.mock('axios');
 import axios from 'axios';

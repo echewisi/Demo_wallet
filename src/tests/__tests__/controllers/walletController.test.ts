@@ -6,7 +6,7 @@ import {
   transferFundsService,
 } from "../../../../src/services/walletService";
 
-jest.mock("../../src/services/walletService");
+jest.mock("../../../../src/services/walletService");
 
 describe("Wallet Controller", () => {
   it("should fund account successfully", async () => {

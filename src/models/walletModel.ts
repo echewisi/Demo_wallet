@@ -20,9 +20,8 @@ const incrementWalletBalance = async (walletId: string, amount: number): Promise
 
 const decrementWalletBalance = async (walletId: string, amount: number): Promise<void> => {
   if (isNaN(amount) || amount <= 0) {
-    throw new Error('Invalid amount. Amount must be a positive number.');
+    throw new Error(`Invalid amount. Amount must be a positive number: not ${amount} `);
   }
-
   const wallet = await db('wallets').where({ wallet_id: walletId }).first();
   
   if (!wallet) {
@@ -51,7 +50,6 @@ const createTransaction = async (
   type: string
 ): Promise<void> => {
   await db("transactions").insert({
-    id: uuidv4(),
     from_wallet_id: fromWalletId,
     to_wallet_id: toWalletId,
     amount,

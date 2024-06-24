@@ -2,7 +2,7 @@ import { createUser, getUserByEmail, User } from '../../../../src/models/userMod
 import knex from 'knex';
 import config from '../../../../src/knexfile';
 
-const db = knex(config.production);
+const db = knex(config.development);
 
 describe('User Model', () => {
   beforeAll(async () => {

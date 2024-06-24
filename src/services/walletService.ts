@@ -64,9 +64,9 @@ export const fundAccountService = async (
  * @returns: a success message is returned when transaction (context-> funds transfer) is successful
  */
 export const transferFundsService = async (
-  userId: string,
-  recipient_wallet_Id: string,
-  amount: number,
+  userId: string, 
+  recipient_wallet_Id: string, 
+  amount: number, 
   password: string
 ) => {
   const user = await getUserById(userId);
@@ -92,13 +92,19 @@ export const transferFundsService = async (
     throw new Error("Insufficient balance.");
   }
 
+  console.log('Starting transaction...');
   await db.transaction(async (trx) => {
+    console.log('Transaction started');
+    console.log(`Sender Wallet ID: ${senderWallet.wallet_id}, Recipient Wallet ID: ${recipient_wallet_Id}, Amount: ${amount}`);
+    
     await trx("wallets")
       .where({ user_id: userId })
       .decrement("balance", amount);
+    
     await trx("wallets")
       .where({ wallet_id: recipient_wallet_Id })
       .increment("balance", amount);
+    
     await createTransaction(
       senderWallet.wallet_id,
       recipientWallet.wallet_id,
@@ -107,6 +113,7 @@ export const transferFundsService = async (
     );
   });
 
+  console.log('Transaction completed successfully');
   return { success: true, message: "Transfer successful." };
 };
 
@@ -147,5 +154,5 @@ export const withdrawFundsService = async (
   }
 
   await decrementWalletBalance(wallet.wallet_id, amount);
-  return { success: true, message: "Withdrawal successful." };
+  return { success: true, message: `Withdrawal successful. balance: ${wallet.balance} ` };
 };

@@ -8,7 +8,7 @@ import {
   createTransaction
 } from '../../../../src/models/walletModel';
 
-const db = knex(config.production);
+const db = knex(config.development);
 
 describe('Wallet Model', () => {
   const mockUser = {

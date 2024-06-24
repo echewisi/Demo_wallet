@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../../../app";
 
-jest.mock("../../src/services/userService");
+jest.mock("../../../../src/services/userService");
 import { createUserService } from "../../../../src/services/userService";
 
 describe("User Controller", () => {
@@ -14,7 +14,7 @@ describe("User Controller", () => {
       wallet_id: "wallet123",
     });
 
-    const response = await request(app).post("/api/users").send({
+    const response = await request(app).post("/api/users/create-account").send({
       name: "John Doe",
       email: "john@example.com",
       phone: "1234567890",

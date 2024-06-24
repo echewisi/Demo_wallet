@@ -15,7 +15,7 @@ import {
   getWalletById,
 } from '../../../../src/models/walletModel';
 
-const db = knex(config.production);
+const db = knex(config.development);
 
 jest.mock('bcrypt');
 jest.mock('../../../../src/models/userModel');

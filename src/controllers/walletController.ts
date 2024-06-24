@@ -15,9 +15,9 @@ export const fundAccountController = async (req: Request, res: Response) => {
   };
   
   export const transferFundsController = async (req: Request, res: Response) => {
-    const { userId, recipientId, amount, password } = req.body;
+    const { userId, recipient_wallet_Id, amount, password } = req.body;
     try {
-      const result = await transferFundsService(userId, recipientId, amount, password);
+      const result = await transferFundsService(userId, recipient_wallet_Id, amount, password);
       res.status(200).json(result);
     } catch (error) {
       res.status(400).json({ message: `unable to transfer funds! ${error}` });
