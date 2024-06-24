@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 const db = knex(config.production);
 
 interface Wallet {
-  id: string;
+  wallet_id: string;
   user_id: string;
   balance: number;
 }
@@ -15,7 +15,7 @@ const incrementWalletBalance = async (walletId: string, amount: number): Promise
     throw new Error('Invalid amount. Amount must be a positive number.');
   }
 
-  await db('wallets').where({ id: walletId }).increment('balance', amount);
+  await db('wallets').where({ wallet_id: walletId }).increment('balance', amount);
 };
 
 const decrementWalletBalance = async (walletId: string, amount: number): Promise<void> => {
@@ -23,7 +23,7 @@ const decrementWalletBalance = async (walletId: string, amount: number): Promise
     throw new Error('Invalid amount. Amount must be a positive number.');
   }
 
-  const wallet = await db('wallets').where({ id: walletId }).first();
+  const wallet = await db('wallets').where({ wallet_id: walletId }).first();
   
   if (!wallet) {
     throw new Error('Wallet not found.');
@@ -33,7 +33,7 @@ const decrementWalletBalance = async (walletId: string, amount: number): Promise
     throw new Error('Insufficient balance.');
   }
 
-  await db('wallets').where({ id: walletId }).decrement('balance', amount);
+  await db('wallets').where({ wallet_id: walletId }).decrement('balance', amount);
 };
 
 const getWalletByUserId = async (userId: string): Promise<Wallet | undefined> => {
@@ -41,7 +41,7 @@ const getWalletByUserId = async (userId: string): Promise<Wallet | undefined> =>
 }
 
 const getWalletById = async (walletId: string): Promise<Wallet | undefined> => {
-  return db('wallets').where({ id: walletId }).first();
+  return db('wallets').where({ wallet_id: walletId }).first();
 };
 
 const createTransaction = async (

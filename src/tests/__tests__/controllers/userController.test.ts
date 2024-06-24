@@ -31,7 +31,7 @@ describe("User Controller", () => {
       new Error("User already exists.")
     );
 
-    const response = await request(app).post("/api/users").send({
+    const response = await request(app).post("/api/users/create-account").send({
       name: "Jane Doe",
       email: "jane@example.com",
       phone: "0987654321",
@@ -42,6 +42,18 @@ describe("User Controller", () => {
     expect(response.body).toHaveProperty(
       "message",
       "unable to create user! Error: User already exists."
+    );
+  });
+
+  it("should return an error if required fields are missing", async () => {
+    const response = await request(app).post("/api/users/create-account").send({
+      name: "Jane Doe",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty(
+      "message",
+      "Missing required fields: email, phone, password"
     );
   });
 });

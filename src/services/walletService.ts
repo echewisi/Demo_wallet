@@ -50,7 +50,7 @@ export const fundAccountService = async (
     throw new Error('Wallet not found.');
   }
 
-  await incrementWalletBalance(wallet.id, amount);
+  await incrementWalletBalance(wallet.wallet_id, amount);
   return { success: true, message: "Account funded successfully!" };
 };
 
@@ -100,8 +100,8 @@ export const transferFundsService = async (
       .where({ wallet_id: recipient_wallet_Id })
       .increment("balance", amount);
     await createTransaction(
-      senderWallet.id,
-      recipientWallet.id,
+      senderWallet.wallet_id,
+      recipientWallet.wallet_id,
       amount,
       "transfer"
     );
@@ -146,6 +146,6 @@ export const withdrawFundsService = async (
     throw new Error("Insufficient balance.");
   }
 
-  await decrementWalletBalance(wallet.id, amount);
+  await decrementWalletBalance(wallet.wallet_id, amount);
   return { success: true, message: "Withdrawal successful." };
 };

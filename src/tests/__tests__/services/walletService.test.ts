@@ -15,71 +15,100 @@ import {
   getWalletById,
 } from '../../../../src/models/walletModel';
 
-const db = knex(config.development);
+const db = knex(config.production);
 
 jest.mock('bcrypt');
 jest.mock('../../../../src/models/userModel');
 jest.mock('../../../../src/models/walletModel');
 
 describe('Wallet Service', () => {
-    const mockUser: User = {
-      id: 'user-123',
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '1234567890',
-      password: 'hashed-password',
-      wallet_id: 'wallet-123',
-    };
-  
-    const mockWallet = {
-      id: 'wallet-123',
-      user_id: 'user-123',
-      balance: 100,
-    };
-  
-    beforeAll(async () => {
-      await db.migrate.latest();
-    });
-  
-    afterEach(async () => {
-      jest.clearAllMocks();
-      await db('wallets').del();
-      await db('users').del();
-    });
-  
-    afterAll(async () => {
-      await db.destroy();
-    });
-  
-    it('should fund account successfully', async () => {
-      (getUserById as jest.Mock).mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
-  
-      const result = await fundAccountService(mockUser.id!, 50, 'password123');
-      expect(result).toEqual({ success: true, message: 'Account funded successfully!' });
-      expect(incrementWalletBalance).toHaveBeenCalledWith(mockWallet.id, 50);
-    });
-  
-    it('should transfer funds successfully', async () => {
-      (getUserById as jest.Mock).mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
-      (getWalletById as jest.Mock).mockResolvedValue({ id: 'wallet-456', user_id: 'user-456', balance: 100 });
-  
-      const result = await transferFundsService(mockUser.id!, 'wallet-456', 50, 'password123');
-      expect(result).toEqual({ success: true, message: 'Transfer successful.' });
-      expect(decrementWalletBalance).toHaveBeenCalledWith(mockWallet.id, 50);
-      expect(incrementWalletBalance).toHaveBeenCalledWith('wallet-456', 50);
-    });
-  
-    it('should withdraw funds successfully', async () => {
-      (getUserById as jest.Mock).mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
-  
-      const result = await withdrawFundsService(mockUser.id!, 50, 'password123');
-      expect(result).toEqual({ success: true, message: 'Withdrawal successful.' });
-      expect(decrementWalletBalance).toHaveBeenCalledWith(mockWallet.id, 50);
-    });
+  const mockUser: User = {
+    id: 'user-123',
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone: '1234567890',
+    password: 'hashed-password',
+    wallet_id: 'wallet-123',
+  };
+
+  const mockWallet = {
+    id: 'wallet-123',
+    user_id: 'user-123',
+    balance: 100,
+  };
+
+  beforeAll(async () => {
+    await db.migrate.latest();
+  }, 10000);
+
+  afterEach(async () => {
+    jest.clearAllMocks();
+    await db('wallets').del();
+    await db('users').del();
   });
+
+  afterAll(async () => {
+    await db.destroy();
+  });
+
+  it('should fund account successfully', async () => {
+    (getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
+
+    const result = await fundAccountService(mockUser.id!, 50, 'password123');
+    expect(result).toEqual({ success: true, message: 'Account funded successfully!' });
+    expect(incrementWalletBalance).toHaveBeenCalledWith(mockWallet.id, 50);
+  });
+
+  it('should return an error if password is incorrect for funding account', async () => {
+    (getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+    await expect(fundAccountService(mockUser.id!, 50, 'wrongpassword')).rejects.toThrow(
+      'Incorrect password'
+    );
+  });
+
+  it('should transfer funds successfully', async () => {
+    (getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
+    (getWalletById as jest.Mock).mockResolvedValue({ id: 'wallet-456', user_id: 'user-456', balance: 100 });
+
+    const result = await transferFundsService(mockUser.id!, 'wallet-456', 50, 'password123');
+    expect(result).toEqual({ success: true, message: 'Transfer successful.' });
+    expect(decrementWalletBalance).toHaveBeenCalledWith(mockWallet.id, 50);
+    expect(incrementWalletBalance).toHaveBeenCalledWith('wallet-456', 50);
+  });
+
+  it('should return an error if recipient wallet does not exist for transfer', async () => {
+    (getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
+    (getWalletById as jest.Mock).mockResolvedValue(null);
+
+    await expect(transferFundsService(mockUser.id!, 'nonexistent-wallet-id', 50, 'password123')).rejects.toThrow(
+      'Recipient wallet not found'
+    );
+  });
+
+  it('should withdraw funds successfully', async () => {
+    (getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
+
+    const result = await withdrawFundsService(mockUser.id!, 50, 'password123');
+    expect(result).toEqual({ success: true, message: 'Withdrawal successful.' });
+    expect(decrementWalletBalance).toHaveBeenCalledWith(mockWallet.id, 50);
+  });
+
+  it('should return an error if password is incorrect for withdrawal', async () => {
+    (getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+    await expect(withdrawFundsService(mockUser.id!, 50, 'wrongpassword')).rejects.toThrow(
+      'Incorrect password'
+    );
+  });
+});
