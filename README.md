@@ -97,6 +97,7 @@ The server will start on http://localhost:3000 if you didnt provide a port in th
 ### Running Tests
 
 ```npm test```
+note:... the connection to the server is timed so the max_number of connections made to the database/server is limited.
 
 ## API ENDPOINTS
 
