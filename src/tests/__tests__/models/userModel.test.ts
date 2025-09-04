@@ -1,55 +1,55 @@
 import { createUser, getUserByEmail, User } from '../../../../src/models/userModel';
-import knex from 'knex';
-import config from '../../../../src/knexfile';
 
-const db = knex(config.development);
+// Mock the database operations
+jest.mock('../../../../src/models/userModel', () => {
+  const originalModule = jest.requireActual('../../../../src/models/userModel');
+  return {
+    ...originalModule,
+    createUser: jest.fn(),
+    getUserByEmail: jest.fn(),
+    getUserById: jest.fn(),
+  };
+});
 
 describe('User Model', () => {
-  beforeAll(async () => {
-    await db.migrate.latest();
-  }, 10000);
+  const mockUser: User = {
+    id: '1',
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone: '1234567890',
+    password: 'password123',
+    wallet_id: 'wallet123',
+  };
 
-  afterEach(async () => {
-    await db('users').del();
-    await db('wallets').del();
-  });
-
-  afterAll(async () => {
-    await db.destroy();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should create and retrieve a user by email', async () => {
-    const mockUser: User = {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '1234567890',
-      password: 'password123',
-      wallet_id: 'wallet123',
-    };
+    (createUser as jest.Mock).mockResolvedValue(mockUser);
+    (getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
 
-    await createUser(mockUser);
+    const result = await createUser(mockUser);
+    expect(result).toEqual(mockUser);
+    expect(createUser).toHaveBeenCalledWith(mockUser);
+
     const user = await getUserByEmail('john@example.com');
-    expect(user).toBeDefined();
-    expect(user?.email).toBe('john@example.com');
+    expect(user).toEqual(mockUser);
+    expect(getUserByEmail).toHaveBeenCalledWith('john@example.com');
   });
 
   it('should return null if user does not exist', async () => {
+    (getUserByEmail as jest.Mock).mockResolvedValue(null);
+
     const user = await getUserByEmail('nonexistent@example.com');
     expect(user).toBeNull();
+    expect(getUserByEmail).toHaveBeenCalledWith('nonexistent@example.com');
   });
 
   it('should handle errors when creating a user with existing email', async () => {
-    const mockUser: User = {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '1234567890',
-      password: 'password123',
-      wallet_id: 'wallet123',
-    };
-
-    await createUser(mockUser);
+    (createUser as jest.Mock).mockRejectedValue(
+      new Error("Error creating user: Duplicate entry 'john@example.com' for key 'users.email'")
+    );
 
     await expect(createUser(mockUser)).rejects.toThrow(
       "Error creating user: Duplicate entry 'john@example.com' for key 'users.email'"

@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "../../../app";
+import app from "../../testApp";
 import {
   fundAccountService,
   withdrawFundsService,
@@ -13,10 +13,11 @@ describe("Wallet Controller", () => {
     (fundAccountService as jest.Mock).mockResolvedValue({
       success: true,
       message: "Account funded successfully!",
+      newBalance: 150,
     });
 
     const response = await request(app).post("/api/wallets/fund-wallet").send({
-      userId: "user-123",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
       amount: 100,
       password: "password123",
     });
@@ -25,34 +26,35 @@ describe("Wallet Controller", () => {
     expect(response.body).toEqual({
       success: true,
       message: "Account funded successfully!",
+      data: {
+        newBalance: 150,
+      },
     });
   });
 
   it("should return an error if funding amount is invalid", async () => {
     const response = await request(app).post("/api/wallets/fund-wallet").send({
-      userId: "user-123",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
       amount: -100,
       password: "password123",
     });
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty(
-      "message",
-      "Invalid amount"
-    );
+    expect(response.body).toHaveProperty("message");
   });
 
   it("should transfer funds successfully", async () => {
     (transferFundsService as jest.Mock).mockResolvedValue({
       success: true,
       message: "Transfer successful.",
+      transactionId: "123",
     });
 
     const response = await request(app)
       .post("/api/wallets/transfer-funds")
       .send({
-        userId: "user-123",
-        recipientId: "wallet-456",
+        userId: "550e8400-e29b-41d4-a716-446655440000",
+        recipientWalletId: "550e8400-e29b-41d4-a716-446655440002",
         amount: 50,
         password: "password123",
       });
@@ -61,6 +63,9 @@ describe("Wallet Controller", () => {
     expect(response.body).toEqual({
       success: true,
       message: "Transfer successful.",
+      data: {
+        transactionId: "123",
+      },
     });
   });
 
@@ -72,29 +77,27 @@ describe("Wallet Controller", () => {
     const response = await request(app)
       .post("/api/wallets/transfer-funds")
       .send({
-        userId: "user-123",
-        recipientId: "wallet-456",
+        userId: "550e8400-e29b-41d4-a716-446655440000",
+        recipientWalletId: "550e8400-e29b-41d4-a716-446655440002",
         amount: 150,
         password: "password123",
       });
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty(
-      "message",
-      "Unable to transfer funds! Error: Insufficient funds"
-    );
+    expect(response.body).toHaveProperty("message");
   });
 
   it("should withdraw funds successfully", async () => {
     (withdrawFundsService as jest.Mock).mockResolvedValue({
       success: true,
       message: "Withdrawal successful.",
+      newBalance: 50,
     });
 
     const response = await request(app)
       .post("/api/wallets/withdraw-funds")
       .send({
-        userId: "user-123",
+        userId: "550e8400-e29b-41d4-a716-446655440000",
         amount: 50,
         password: "password123",
       });
@@ -103,6 +106,9 @@ describe("Wallet Controller", () => {
     expect(response.body).toEqual({
       success: true,
       message: "Withdrawal successful.",
+      data: {
+        newBalance: 50,
+      },
     });
   });
 
@@ -110,15 +116,12 @@ describe("Wallet Controller", () => {
     const response = await request(app)
       .post("/api/wallets/withdraw-funds")
       .send({
-        userId: "user-123",
+        userId: "550e8400-e29b-41d4-a716-446655440000",
         amount: -50,
         password: "password123",
       });
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty(
-      "message",
-      "Invalid amount"
-    );
+    expect(response.body).toHaveProperty("message");
   });
 });

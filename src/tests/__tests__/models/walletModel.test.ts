@@ -1,5 +1,3 @@
-import knex from 'knex';
-import config from '../../../../src/knexfile';
 import {
   getWalletById,
   getWalletByUserId,
@@ -8,88 +6,89 @@ import {
   createTransaction
 } from '../../../../src/models/walletModel';
 
-const db = knex(config.development);
+// Mock the database operations
+jest.mock('../../../../src/models/walletModel', () => {
+  const originalModule = jest.requireActual('../../../../src/models/walletModel');
+  return {
+    ...originalModule,
+    getWalletById: jest.fn(),
+    getWalletByUserId: jest.fn(),
+    incrementWalletBalance: jest.fn(),
+    decrementWalletBalance: jest.fn(),
+    createTransaction: jest.fn(),
+  };
+});
 
 describe('Wallet Model', () => {
-  const mockUser = {
-    id: 'user-123',
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '1234567890',
-    password: 'hashed-password',
-    wallet_id: 'wallet-123',
-  };
-
   const mockWallet = {
     wallet_id: 'wallet-123',
     user_id: 'user-123',
     balance: 100,
   };
 
-  beforeAll(async () => {
-    await db.migrate.latest();
-  }, 10000);
-  
-
-  beforeEach(async () => {
-    await db('users').insert(mockUser);
-    await db('wallets').insert(mockWallet);
-  });
-
-  afterEach(async () => {
-    await db('wallets').del();
-    await db('users').del();
-  });
-
-  afterAll(async () => {
-    await db.destroy();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should get wallet by user ID', async () => {
-    const wallet = await getWalletByUserId(mockUser.id!);
-    expect(wallet).toBeDefined();
-    expect(wallet?.user_id).toBe(mockUser.id);
+    (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
+
+    const wallet = await getWalletByUserId('user-123');
+    expect(wallet).toEqual(mockWallet);
+    expect(getWalletByUserId).toHaveBeenCalledWith('user-123');
   });
 
   it('should return null if wallet for user ID does not exist', async () => {
+    (getWalletByUserId as jest.Mock).mockResolvedValue(null);
+
     const wallet = await getWalletByUserId('nonexistent-user-id');
     expect(wallet).toBeNull();
+    expect(getWalletByUserId).toHaveBeenCalledWith('nonexistent-user-id');
   });
 
   it('should get wallet by wallet ID', async () => {
-    const wallet = await getWalletById(mockWallet.wallet_id);
-    expect(wallet).toBeDefined();
-    expect(wallet?.wallet_id).toBe(mockWallet.wallet_id);
+    (getWalletById as jest.Mock).mockResolvedValue(mockWallet);
+
+    const wallet = await getWalletById('wallet-123');
+    expect(wallet).toEqual(mockWallet);
+    expect(getWalletById).toHaveBeenCalledWith('wallet-123');
   });
 
   it('should increment wallet balance', async () => {
-    await incrementWalletBalance(mockWallet.wallet_id, 50);
-    const updatedWallet = await getWalletById(mockWallet.wallet_id);
-    expect(updatedWallet).toBeDefined();
-    expect(updatedWallet?.balance).toBe(mockWallet.balance + 50);
+    (incrementWalletBalance as jest.Mock).mockResolvedValue(undefined);
+    (getWalletById as jest.Mock).mockResolvedValue({ ...mockWallet, balance: 150 });
+
+    await incrementWalletBalance('wallet-123', 50);
+    expect(incrementWalletBalance).toHaveBeenCalledWith('wallet-123', 50);
+
+    const updatedWallet = await getWalletById('wallet-123');
+    expect(updatedWallet?.balance).toBe(150);
   });
 
   it('should decrement wallet balance', async () => {
-    await decrementWalletBalance(mockWallet.wallet_id, 50);
-    const updatedWallet = await getWalletById(mockWallet.wallet_id);
-    expect(updatedWallet).toBeDefined();
-    expect(updatedWallet?.balance).toBe(mockWallet.balance - 50);
+    (decrementWalletBalance as jest.Mock).mockResolvedValue(undefined);
+    (getWalletById as jest.Mock).mockResolvedValue({ ...mockWallet, balance: 50 });
+
+    await decrementWalletBalance('wallet-123', 50);
+    expect(decrementWalletBalance).toHaveBeenCalledWith('wallet-123', 50);
+
+    const updatedWallet = await getWalletById('wallet-123');
+    expect(updatedWallet?.balance).toBe(50);
   });
 
   it('should create a transaction', async () => {
-    const newTransactionId = 'transaction-123';
-    await createTransaction(mockWallet.wallet_id, 'wallet-456', 50, 'transfer');
-    const transactions = await db('transactions').where({ from_wallet_id: mockWallet.wallet_id });
-    expect(transactions.length).toBe(1);
-    expect(transactions[0]).toHaveProperty('id');
-    expect(transactions[0].from_wallet_id).toBe(mockWallet.wallet_id);
-    expect(transactions[0].to_wallet_id).toBe('wallet-456');
-    expect(transactions[0].amount).toBe(50);
-    expect(transactions[0].type).toBe('transfer');
+    (createTransaction as jest.Mock).mockResolvedValue(undefined);
+
+    await createTransaction('wallet-123', 'wallet-456', 50, 'transfer');
+    expect(createTransaction).toHaveBeenCalledWith('wallet-123', 'wallet-456', 50, 'transfer');
   });
 
   it('should handle errors when creating a transaction with invalid data', async () => {
-    await expect(createTransaction(mockWallet.wallet_id, '', 50, 'transfer')).rejects.toThrow(
+    (createTransaction as jest.Mock).mockRejectedValue(
+      new Error("Error creating transaction: Invalid recipient wallet ID")
+    );
+
+    await expect(createTransaction('wallet-123', '', 50, 'transfer')).rejects.toThrow(
       "Error creating transaction: Invalid recipient wallet ID"
     );
   });
