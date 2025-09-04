@@ -182,7 +182,7 @@ npm run test:watch
 
 4. **Deploy**:
    - Render will automatically deploy when you push to your main branch
-   - The service will be available at: `https://<candidate-name>-lendsqr-be-test.onrender.com`
+   - The service will be available at: `https://joseph-echewisi-lendsqr-be-test.onrender.com`
 
 5. **Run Migrations** (if needed):
    - Use Render's shell feature to run: `npm run migrate`
