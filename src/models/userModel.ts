@@ -1,7 +1,7 @@
 import knex from "knex";
 import config from "../knexfile";
 
-const db = knex(config.production);
+const db = knex(config['production']!);
 
 interface User {
   id?: string;
@@ -25,7 +25,7 @@ const getUserByEmail = async (email: string): Promise<User | undefined> => {
 
 const createUser = async (user: User): Promise<User> => {
   await db<User>("users").insert(user);
-  const newUser = await getUserById(user.id!); // Fetch and return the created user
+  const newUser = await getUserById(user.id!); 
   if (!newUser) {
     throw new Error("User creation failed");
   }

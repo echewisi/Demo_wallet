@@ -1,8 +1,8 @@
 import knex from "knex";
 import config from "../knexfile";
-import { v4 as uuidv4 } from "uuid";
 
-const db = knex(config.production);
+
+const db = knex(config['production']!);
 
 interface Wallet {
   wallet_id: string;
