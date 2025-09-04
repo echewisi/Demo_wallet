@@ -155,41 +155,41 @@ npm run test:watch
 
 ## 🚀 Deployment
 
-### Heroku Deployment
+### Render Deployment
 
-1. **Install Heroku CLI** and login:
-```bash
-npm install -g heroku
-heroku login
-```
+1. **Create Render Account** and connect your GitHub repository:
+   - Visit [render.com](https://render.com)
+   - Sign up and connect your GitHub account
+   - Import your repository
 
-2. **Create Heroku App**:
-```bash
-heroku create <candidate-name>-lendsqr-be-test
-```
+2. **Create Web Service**:
+   - Choose "Web Service" from the dashboard
+   - Connect your GitHub repository
+   - Set the following configuration:
+     - **Build Command**: `npm run build`
+     - **Start Command**: `npm start`
+     - **Environment**: `Node`
 
 3. **Set Environment Variables**:
-```bash
-heroku config:set DB_HOST=your-db-host
-heroku config:set DB_USER=your-db-user
-heroku config:set DB_PASSWORD=your-db-password
-heroku config:set DB_NAME=your-db-name
-heroku config:set ADJUTOR_SECRET_KEY=your-adjutor-key
-heroku config:set FAUX_TOKEN=your-faux-token
-heroku config:set NODE_ENV=production
-```
+   - `NODE_ENV=production`
+   - `DB_HOST=your-database-host`
+   - `DB_USER=your-database-user`
+   - `DB_PASSWORD=your-database-password`
+   - `DB_NAME=your-database-name`
+   - `ADJUTOR_SECRET_KEY=your-adjutor-api-key`
+   - `FAUX_TOKEN=your-faux-authentication-token`
+   - `PORT` (Render will set this automatically)
 
 4. **Deploy**:
-```bash
-git add .
-git commit -m "Deploy Demo Credit Wallet Service"
-git push heroku main
-```
+   - Render will automatically deploy when you push to your main branch
+   - The service will be available at: `https://<candidate-name>-lendsqr-be-test.onrender.com`
 
-5. **Run Migrations**:
-```bash
-heroku run npm run migrate
-```
+5. **Run Migrations** (if needed):
+   - Use Render's shell feature to run: `npm run migrate`
+
+### Alternative: Heroku Deployment
+
+If you prefer Heroku, follow the original instructions in the README.
 
 ### Environment Variables
 

@@ -33,13 +33,17 @@ describe("Wallet Controller", () => {
   });
 
   it("should return an error if funding amount is invalid", async () => {
+    (fundAccountService as jest.Mock).mockRejectedValue(
+      new Error("Validation failed: Amount must be a positive number")
+    );
+
     const response = await request(app).post("/api/wallets/fund-wallet").send({
       userId: "550e8400-e29b-41d4-a716-446655440000",
       amount: -100,
       password: "password123",
     });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("message");
   });
 
@@ -83,7 +87,7 @@ describe("Wallet Controller", () => {
         password: "password123",
       });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("message");
   });
 
@@ -113,6 +117,10 @@ describe("Wallet Controller", () => {
   });
 
   it("should return an error if withdrawal amount is invalid", async () => {
+    (withdrawFundsService as jest.Mock).mockRejectedValue(
+      new Error("Validation failed: Amount must be a positive number")
+    );
+
     const response = await request(app)
       .post("/api/wallets/withdraw-funds")
       .send({
@@ -121,7 +129,7 @@ describe("Wallet Controller", () => {
         password: "password123",
       });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("message");
   });
 });

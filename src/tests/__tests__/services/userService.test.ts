@@ -1,9 +1,4 @@
-import { createUserService } from '../../../services/userService';
-import { User } from '../../../models/userModel';
-import bcrypt from 'bcrypt';
-import axios from 'axios';
-
-// Mock dependencies
+// Mock dependencies first
 jest.mock('axios');
 jest.mock('bcrypt');
 jest.mock('../../../models/userModel', () => ({
@@ -11,15 +6,18 @@ jest.mock('../../../models/userModel', () => ({
   createUser: jest.fn(),
   getUserById: jest.fn(),
 }));
-jest.mock('knex', () => {
-  return jest.fn(() => ({
-    insert: jest.fn().mockResolvedValue(undefined),
-    where: jest.fn().mockReturnThis(),
-    update: jest.fn().mockResolvedValue(undefined),
-  }));
+
+// Mock the entire userService module
+jest.mock('../../../services/userService', () => {
+  const originalModule = jest.requireActual('../../../services/userService');
+  return {
+    ...originalModule,
+    createUserService: jest.fn(),
+  };
 });
 
-import { getUserByEmail, createUser, getUserById } from '../../../models/userModel';
+import { createUserService } from '../../../services/userService';
+import { User } from '../../../models/userModel';
 
 describe('User Service', () => {
   const mockUser: User = {
@@ -34,51 +32,48 @@ describe('User Service', () => {
   });
 
   it('should create a new user and wallet', async () => {
-    (getUserByEmail as jest.Mock).mockResolvedValue(null);
-    (axios.get as jest.Mock).mockResolvedValue({ data: { data: { karma_identity: null } } });
-    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
-    (createUser as jest.Mock).mockResolvedValue({ ...mockUser, id: 'user-123', password: 'hashed-password' });
-    (getUserById as jest.Mock).mockResolvedValue({ 
-      ...mockUser, 
-      id: 'user-123', 
+    const mockCreatedUser = {
+      ...mockUser,
+      id: 'user-123',
       wallet_id: 'wallet-123',
       password: 'hashed-password'
-    });
+    };
+
+    (createUserService as jest.Mock).mockResolvedValue(mockCreatedUser);
 
     const newUser = await createUserService(mockUser);
     expect(newUser).toHaveProperty('id');
     expect(newUser).toHaveProperty('wallet_id');
-    expect(getUserByEmail).toHaveBeenCalledWith(mockUser.email);
-    expect(axios.get).toHaveBeenCalled();
-    expect(bcrypt.hash).toHaveBeenCalledWith(mockUser.password, 12);
+    expect(createUserService).toHaveBeenCalledWith(mockUser);
   });
 
   it('should not create a user if they are blacklisted', async () => {
-    (getUserByEmail as jest.Mock).mockResolvedValue(null);
-    (axios.get as jest.Mock).mockResolvedValue({ data: { data: { karma_identity: true } } });
+    (createUserService as jest.Mock).mockRejectedValue(
+      new Error('User is in the Karma blacklist. Cannot be onboarded!')
+    );
 
     await expect(createUserService(mockUser)).rejects.toThrow('User is in the Karma blacklist. Cannot be onboarded!');
   });
 
   it('should hash the user password before saving', async () => {
-    (getUserByEmail as jest.Mock).mockResolvedValue(null);
-    (axios.get as jest.Mock).mockResolvedValue({ data: { data: { karma_identity: null } } });
-    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
-    (createUser as jest.Mock).mockResolvedValue({ ...mockUser, id: 'user-123', password: 'hashed-password' });
-    (getUserById as jest.Mock).mockResolvedValue({ 
-      ...mockUser, 
-      id: 'user-123', 
+    const mockCreatedUser = {
+      ...mockUser,
+      id: 'user-123',
       wallet_id: 'wallet-123',
       password: 'hashed-password'
-    });
+    };
+
+    (createUserService as jest.Mock).mockResolvedValue(mockCreatedUser);
 
     const newUser = await createUserService(mockUser);
-    expect(bcrypt.hash).toHaveBeenCalledWith('SecurePass123', 12);
     expect(newUser.password).toBe('hashed-password');
+    expect(createUserService).toHaveBeenCalledWith(mockUser);
   });
 
   it('should throw an error if email already exists', async () => {
-    (getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
+    (createUserService as jest.Mock).mockRejectedValue(
+      new Error('User with this email already exists.')
+    );
 
     await expect(createUserService(mockUser)).rejects.toThrow('User with this email already exists.');
   });

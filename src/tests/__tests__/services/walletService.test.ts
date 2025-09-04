@@ -26,12 +26,12 @@ jest.mock('../../../../src/models/walletModel', () => ({
 jest.mock('knex', () => {
   return jest.fn(() => ({
     transaction: jest.fn((callback) => {
-      const mockTrx = {
+      const mockTrx = jest.fn((_tableName: string) => ({
         insert: jest.fn().mockResolvedValue([123]),
         where: jest.fn().mockReturnThis(),
         decrement: jest.fn().mockResolvedValue(undefined),
         increment: jest.fn().mockResolvedValue(undefined),
-      };
+      }));
       return callback(mockTrx);
     }),
   }));
