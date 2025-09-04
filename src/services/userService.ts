@@ -5,10 +5,18 @@ import config from "../knexfile";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
+import { validateUserRegistration } from "../utils/validation";
+import { 
+  ValidationError, 
+  ConflictError, 
+  BlacklistError, 
+  DatabaseError,
+  ExternalServiceError 
+} from "../utils/errors";
 
 dotenv.config();
 
-const db = knex(config.production);
+const db = knex(config['production']!);
 
 /**
  *
@@ -16,44 +24,25 @@ const db = knex(config.production);
  * @returns: the created user is being returned if successful or the process is errored due to other failed conditions, including but not limited
  * to being present in adjutor's karma database.
  */
-export const createUserService = async (user: User) => {
+export const createUserService = async (user: User): Promise<User> => {
   try {
+    // Validate input data
+    const validation = validateUserRegistration(user);
+    if (!validation.isValid) {
+      throw new ValidationError(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+
     // Check if user already exists
     const existingUser = await getUserByEmail(user.email);
     if (existingUser) {
-      throw new Error("User already exists.");
+      throw new ConflictError("User with this email already exists.");
     }
 
-    // Check if user is in blacklist
-    console.log("Preparing to check if user is in blacklist");
-    try {
-      const apiUrl = await axios.get(
-        `https://adjutor.lendsqr.com/v2/verification/karma/${user.email}`,
-        {
-          headers: {
-            "Authorization": `Bearer ${process.env.ADJUTOR_SECRET_KEY}`,
-          },
-        }
-      );
-
-      console.log("Making request to Adjutor API");
-      console.log("URL:", apiUrl);
-      console.log("Headers:", apiUrl.headers);
-
-      console.log("Blacklist check response:", apiUrl.data);
-      if (apiUrl.data.data.karma_identity) {
-        throw new Error("User is in the blacklist. Cannot be onboarded!");
-      }
-    } catch (axiosError: any) {
-      if (axiosError.response && axiosError.response.status === 404) {
-        console.warn("Adjutor API returned 404. Skipping blacklist check.");
-      } else {
-        throw axiosError;
-      }
-    }
+    // Check if user is in blacklist using Adjutor Karma API
+    await checkKarmaBlacklist(user.email);
 
     // Hash the password before storing it
-    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const hashedPassword = await bcrypt.hash(user.password, 12);
 
     // Assign a new UUID to the user
     user.id = uuidv4();
@@ -74,10 +63,58 @@ export const createUserService = async (user: User) => {
 
     // Fetch and return the created user with wallet_id
     const updatedUser = await getUserById(newUser.id!);
+    if (!updatedUser) {
+      throw new DatabaseError("Failed to retrieve created user");
+    }
 
-    return updatedUser!;
+    // Remove password from response
+    const { password, ...userResponse } = updatedUser;
+    return userResponse as User;
   } catch (error) {
-    console.error(`Error creating user: ${error}`);
-    throw error;
+    if (error instanceof ValidationError || 
+        error instanceof ConflictError || 
+        error instanceof BlacklistError ||
+        error instanceof DatabaseError) {
+      throw error;
+    }
+    console.error(`Unexpected error creating user: ${error}`);
+    throw new DatabaseError("Failed to create user");
+  }
+};
+
+/**
+ * Check if user is in Karma blacklist
+ */
+const checkKarmaBlacklist = async (email: string): Promise<void> => {
+  try {
+    console.log(`Checking Karma blacklist for email: ${email}`);
+    
+    const response = await axios.get(
+      `https://adjutor.lendsqr.com/v2/verification/karma/${email}`,
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env['ADJUTOR_SECRET_KEY']}`,
+        },
+        timeout: 10000, // 10 second timeout
+      }
+    );
+
+    console.log("Karma blacklist check response:", response.data);
+    
+    if (response.data?.data?.karma_identity) {
+      throw new BlacklistError("User is in the Karma blacklist. Cannot be onboarded!");
+    }
+  } catch (axiosError: any) {
+    if (axiosError.response?.status === 404) {
+      console.warn("User not found in Karma blacklist (404). Proceeding with registration.");
+      return; // User not in blacklist, proceed
+    }
+    
+    if (axiosError instanceof BlacklistError) {
+      throw axiosError; // Re-throw blacklist errors
+    }
+    
+    console.error("Karma API error:", axiosError.message);
+    throw new ExternalServiceError("Unable to verify user status with Karma service");
   }
 };

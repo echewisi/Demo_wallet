@@ -97,7 +97,7 @@ describe('Wallet Service', () => {
     (getWalletByUserId as jest.Mock).mockResolvedValue(mockWallet);
     (getWalletById as jest.Mock).mockResolvedValue(null);
 
-    await expect(transferFundsService(mockUser.id, 'nonexistent-wallet-id', 50, 'password123')).rejects.toThrow(
+    await expect(transferFundsService(mockUser.id, '550e8400-e29b-41d4-a716-446655440999', 50, 'password123')).rejects.toThrow(
       'Recipient wallet not found'
     );
   });

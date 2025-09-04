@@ -17,27 +17,26 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Faux authentication middleware
+// Faux authentication middleware (applied only to protected routes)
 import authMiddleware from "./middlewares/authMiddleware";
-app.use(authMiddleware);
 
 // Routes
 app.use("/api/users", userRoutes);
-app.use("/api/wallets", walletRoutes);
+app.use("/api/wallets", authMiddleware, walletRoutes);
 
 // Basic route for health check
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.send("Demo Credit Wallet Service API is ready");
 });
 
 // Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err.stack);
   res.status(500).send({ error: err.message });
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env['PORT'] || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

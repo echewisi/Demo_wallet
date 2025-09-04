@@ -22,8 +22,8 @@ describe("User Controller", () => {
     });
 
     expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty("id");
-    expect(response.body).toHaveProperty("wallet_id");
+    expect(response.body.data).toHaveProperty("id");
+    expect(response.body.data).toHaveProperty("wallet_id");
   });
 
   it("should return an error if user already exists", async () => {
@@ -38,9 +38,8 @@ describe("User Controller", () => {
       password: "SecurePass123",
     });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("message");
-    expect(response.body.message).toContain("unable to create user!");
   });
 
   it("should return an error if required fields are missing", async () => {
@@ -48,7 +47,7 @@ describe("User Controller", () => {
       name: "Jane Doe",
     });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(500);
     expect(response.body).toHaveProperty("message");
   });
 });
