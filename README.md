@@ -36,7 +36,7 @@ Demo Credit Wallet Service is a comprehensive Node.js TypeScript application tha
 
 
 ## IMPORTANT NOTICE!!
-aside from the minor tweaks coming from the lendsqr adjudtor  karma api(the field for `identity` doesent seem to read the any identity provided. except for the very one depicted in the documentation), the api does the other functionalities right.
+The Karma blacklist integration has been updated to properly handle the API response structure. The system now checks the `amount_in_contention` field - if it's "0.00", the user is not blacklisted and can proceed with registration. If the amount is greater than 0, the user is considered blacklisted and registration is blocked.
 
 ## Project overview on Notion
 you can find the project overview on google docs:

@@ -101,7 +101,9 @@ const checkKarmaBlacklist = async (email: string): Promise<void> => {
 
     console.log("Karma blacklist check response:", response.data);
     
-    if (response.data?.data?.karma_identity) {
+    // Check if user is in blacklist based on amount_in_contention
+    const amountInContention = response.data?.data?.amount_in_contention;
+    if (amountInContention && parseFloat(amountInContention) > 0) {
       throw new BlacklistError("User is in the Karma blacklist. Cannot be onboarded!");
     }
   } catch (axiosError: any) {
