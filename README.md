@@ -232,6 +232,7 @@ FAUX_TOKEN=test-faux-token
 ```
 
 ## 🔌 API Endpoints
+API DOCS CAN BE FOUND AT THIS URL: `https://documenter.getpostman.com/view/38742700/2sB3Hkqg5a`
 
 ### User Endpoints
 
